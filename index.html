@@ -115,6 +115,20 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 2rem
 .gen-dot:nth-child(3){animation-delay:0.4s;}
 @keyframes dots{0%,80%,100%{opacity:0.2;transform:scale(0.8)}40%{opacity:1;transform:scale(1)}}
 ::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+/* ── Pipeline stage dropdown ── */
+.stage-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;font-size:12.5px;font-weight:600;cursor:pointer;transition:all 0.15s;border:none;}
+.stage-pill:hover{filter:brightness(1.15);}
+.stage-dropdown{position:absolute;top:calc(100% + 6px);left:0;z-index:500;background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);padding:4px;width:210px;box-shadow:0 12px 40px rgba(0,0,0,0.5);}
+.stage-option{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;cursor:pointer;font-size:12.5px;color:var(--text2);transition:all 0.1s;}
+.stage-option:hover{background:var(--sbg,var(--surface2));color:var(--scolor,var(--text));}
+.stage-option-active{background:var(--sbg,var(--surface2));color:var(--scolor,var(--text));font-weight:600;}
+.stage-mini-btn{display:flex;align-items:center;gap:5px;padding:6px 8px;border-radius:8px;cursor:pointer;font-size:11.5px;color:var(--text2);border:1px solid var(--border);transition:all 0.12s;white-space:nowrap;overflow:hidden;}
+.stage-mini-btn:hover{background:var(--sb,var(--surface2));color:var(--sc,var(--text));border-color:var(--sbo,var(--border2));}
+.stage-mini-btn span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+/* Pipeline board wider layout */
+.pipeline-columns{display:grid;gap:10px;align-items:start;}
+.pipeline-col{border-top:3px solid transparent;}
+
 .view{display:none;}.view.active{display:flex;flex:1;overflow:hidden;}
 @media(max-width:1200px){.detail-panel{display:none;}.stats-row{grid-template-columns:repeat(2,1fr);}}
 </style>
@@ -197,11 +211,16 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 2rem
         <button class="btn btn-ghost btn-sm" onclick="sortLeads()">&#8597; Score</button>
         <button class="btn btn-ghost btn-sm" onclick="exportLeads()">&#8599; CSV</button>
       </div>
-      <div class="stats-row" id="tt-stats">
-        <div class="stat-card"><div class="stat-label">Active leads</div><div class="stat-value sv-accent" id="stat-leads">14</div><div class="stat-sub">&#8593; 4 this week</div></div>
-        <div class="stat-card"><div class="stat-label">Avg opportunity</div><div class="stat-value sv-teal">&#163;22k</div><div class="stat-sub">per engagement</div></div>
-        <div class="stat-card"><div class="stat-label">Hot signals</div><div class="stat-value sv-amber">6</div><div class="stat-sub">act this week</div></div>
-        <div class="stat-card"><div class="stat-label">Pipeline value</div><div class="stat-value sv-green">&#163;287k</div><div class="stat-sub">potential 90 days</div></div>
+      <div class="stats-row" id="tt-stats" style="grid-template-columns:repeat(5,1fr)">
+        <div class="stat-card"><div class="stat-label">Active leads</div><div class="stat-value sv-accent" id="stat-leads">14</div><div class="stat-sub">excl. closed &amp; nurture</div></div>
+        <div class="stat-card"><div class="stat-label">Hot signals</div><div class="stat-value sv-amber" id="stat-hot">6</div><div class="stat-sub">act this week</div></div>
+        <div class="stat-card"><div class="stat-label">Pipeline value</div><div class="stat-value sv-green" id="stat-pipeline">&#163;287k</div><div class="stat-sub">potential 90 days</div></div>
+        <div class="stat-card"><div class="stat-label">Win rate</div><div class="stat-value sv-teal" id="stat-winrate">&#8212;</div><div class="stat-sub">0W / 0L</div></div>
+        <div class="stat-card" id="stat-breakdown-card" style="cursor:pointer" onclick="switchTab('pipeline',document.querySelectorAll('.tab-btn')[1])">
+          <div class="stat-label">Stage breakdown</div>
+          <div id="stat-sparkbar" style="display:flex;gap:3px;margin-top:6px;flex-wrap:wrap"></div>
+          <div class="stat-sub" style="margin-top:6px">click to view pipeline</div>
+        </div>
       </div>
       <div class="leads-grid" id="leads-grid" data-tt="tt-leads-grid"></div>
     </div>
@@ -257,12 +276,41 @@ const LEADS = [
   {id:14,name:"Ben Hargreaves",role:"Sustainability Director",company:"Cellnex UK",segment:"infrastructure",services:['annual-report','infographic','copywriting','presentations'],score:85,signals:["hot"],signalLabels:["ESG report cycle underway","Regulatory disclosure tightening","Complex data needs visualising"],avatar:"#4338ca",initials:"CX",location:"London",size:"800 employees",description:"Tower infrastructure company with significant ESG reporting obligations. Ben needs creative support for data visualisation and narrative design \u2014 complex metrics need accessible presentation.",pitchIdeas:[{label:"Sustainability report design",text:"Oriel's work on interactive data tools and complex industry content for GSMA and TM Forum is directly relevant to an ESG report with dense metrics. A designed PDF and interactive report would be a flagship deliverable."},{label:"Dynamic infographics",text:"Sustainability metrics \u2014 carbon intensity, tower energy, circular economy data \u2014 are hard to communicate in tables. A suite of infographics for the report, website and investor presentations gives Ben reusable assets across all channels."}],followUp:"Hi Ben \u2014 we've helped industry bodies present complex technical and data-heavy material in engaging, accessible formats. With ESG disclosure requirements tightening, we think Oriel could be a strong creative partner for Cellnex's sustainability reporting.",pipeline:"Identified",value:"\u00a335k"}
 ];
 
-const STAGES = {"Identified":[],"Outreach sent":[],"Qualified":[],"Meeting booked":[],"Proposal sent":[]};
+// ─── PIPELINE STAGE DEFINITIONS ─────────────────────────────────────────────
+const PIPELINE_DEFS = [
+  { key:'new-discovery',    label:'New Discovery',  emoji:'🟡', color:'#f59e0b', bg:'rgba(245,158,11,0.12)',  border:'rgba(245,158,11,0.35)'  },
+  { key:'outreach-sent',    label:'Outreach Sent',  emoji:'📧', color:'#7c6dfa', bg:'rgba(124,109,250,0.12)', border:'rgba(124,109,250,0.35)' },
+  { key:'meeting-booked',   label:'Meeting Booked', emoji:'📞', color:'#2dd4bf', bg:'rgba(45,212,191,0.12)',  border:'rgba(45,212,191,0.35)'  },
+  { key:'proposal-sent',    label:'Proposal Sent',  emoji:'📄', color:'#60a5fa', bg:'rgba(96,165,250,0.12)',  border:'rgba(96,165,250,0.35)'  },
+  { key:'closed-won',       label:'Closed Won',     emoji:'✅', color:'#34d399', bg:'rgba(52,211,153,0.12)',  border:'rgba(52,211,153,0.35)'  },
+  { key:'closed-lost',      label:'Closed Lost',    emoji:'❌', color:'#f87171', bg:'rgba(248,113,113,0.12)', border:'rgba(248,113,113,0.35)' },
+  { key:'nurture-30d',      label:'Nurture (30d)',   emoji:'🔁', color:'#c084fc', bg:'rgba(192,132,252,0.12)', border:'rgba(192,132,252,0.35)' },
+];
+
+// Map old pipeline string values to new keys
+const STAGE_LEGACY_MAP = {
+  'Identified':   'new-discovery',
+  'Outreach sent':'outreach-sent',
+  'Qualified':    'outreach-sent',
+  'Meeting booked':'meeting-booked',
+  'Proposal sent':'proposal-sent',
+};
+
+function stageByKey(key){ return PIPELINE_DEFS.find(s=>s.key===key) || PIPELINE_DEFS[0]; }
+
+// Build STAGES object keyed by stage key
+const STAGES = {};
+PIPELINE_DEFS.forEach(s=>STAGES[s.key]=[]);
 let curFilter='all', curSignal=null, selLead=null, curChannel='email';
 
 function init(){
-  LEADS.forEach(l=>{if(STAGES[l.pipeline])STAGES[l.pipeline].push(l);});
-  renderLeads(LEADS); renderPipeline(); renderInsights();
+  // Migrate legacy pipeline strings and populate STAGES
+LEADS.forEach(l=>{
+  if(STAGE_LEGACY_MAP[l.pipeline]) l.pipeline=STAGE_LEGACY_MAP[l.pipeline];
+  if(!l.pipeline || !STAGES[l.pipeline]) l.pipeline='new-discovery';
+  STAGES[l.pipeline].push(l);
+});
+  renderLeads(LEADS); renderPipeline(); renderInsights(); updateAnalytics();
 }
 
 function renderLeads(leads){
@@ -330,10 +378,17 @@ function selectLead(id){
         <button class="btn btn-ghost btn-sm" onclick="markContacted(${l.id})">&#10003; Sent</button>
       </div>
     </div>
+    <div class="panel-section">
+      <div class="panel-section-title">Pipeline stage</div>
+      <div style="margin-bottom:10px">${buildStageBadge(l.id, l.pipeline)}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        ${PIPELINE_DEFS.map(def=>`<div class="stage-mini-btn" style="--sc:${def.color};--sb:${def.bg};--sbo:${def.border}" onclick="setPipelineStage(${l.id},'${def.key}')" title="${def.label}">${def.emoji} <span>${def.label}</span></div>`).join('')}
+      </div>
+    </div>
     <div style="display:flex;gap:6px">
-      <button class="btn btn-ghost btn-sm" style="flex:1;justify-content:center" onclick="movePipeline(${l.id})">&#8594; Move pipeline</button>
       <button class="btn btn-ghost btn-sm" onclick="showToast('Lead archived','')">&#128451; Archive</button>
-    </div>`;
+      <button class="btn btn-ghost btn-sm" style="flex:1;justify-content:center" onclick="exportLeads()">&#8599; Export leads</button>
+    </div>\`;
 }
 
 const SIGNAL_CTX={
@@ -458,30 +513,79 @@ async function findNewLeads(){
     LEADS.unshift(nl);
     if(STAGES["Identified"])STAGES["Identified"].unshift(nl);
     document.getElementById('cnt-all').textContent=LEADS.length;
-    applyFilters();renderPipeline();
+    applyFilters();renderPipeline();updateAnalytics();
     btn.textContent='\u26a1 Find leads';btn.disabled=false;
     showToast(`New lead: ${nl.name} at ${nl.company}`,'success');
   }catch(e){btn.textContent='\u26a1 Find leads';btn.disabled=false;showToast('AI scan complete \u2014 check leads','success');}
 }
 
 function markContacted(id){
+  setPipelineStage(id,'outreach-sent');
   const l=LEADS.find(x=>x.id===id);
-  if(l?.pipeline==='Identified'){l.pipeline='Outreach sent';STAGES['Identified']=STAGES['Identified'].filter(x=>x.id!==id);if(!STAGES['Outreach sent'])STAGES['Outreach sent']=[];STAGES['Outreach sent'].push(l);renderPipeline();}
   showToast(`${l?.name} marked as contacted`,'success');
+}
+
+function setPipelineStage(id, newKey){
+  const l=LEADS.find(x=>x.id===id);
+  if(!l)return;
+  const oldKey=l.pipeline;
+  if(oldKey===newKey)return;
+  STAGES[oldKey]=STAGES[oldKey].filter(x=>x.id!==id);
+  l.pipeline=newKey;
+  if(!STAGES[newKey])STAGES[newKey]=[];
+  STAGES[newKey].push(l);
+  renderPipeline();
+  updateAnalytics();
+  // Re-render detail panel stage badge
+  const badge=document.getElementById('stage-badge-'+id);
+  if(badge){
+    const def=stageByKey(newKey);
+    badge.innerHTML=buildStageBadge(id,newKey);
+  }
+  showToast(`Moved to "${stageByKey(newKey).label}"`, 'success');
+  // close any open dropdown
+  document.querySelectorAll('.stage-dropdown').forEach(d=>d.remove());
 }
 
 function movePipeline(id){
   const l=LEADS.find(x=>x.id===id);
-  const stages=Object.keys(STAGES);
-  const idx=stages.indexOf(l.pipeline);
-  if(idx<stages.length-1){
-    STAGES[l.pipeline]=STAGES[l.pipeline].filter(x=>x.id!==id);
-    l.pipeline=stages[idx+1];
-    if(!STAGES[l.pipeline])STAGES[l.pipeline]=[];
-    STAGES[l.pipeline].push(l);
-    renderPipeline();showToast(`Moved to "${l.pipeline}"`,'success');
-  }else showToast('Already at final stage','');
+  const keys=PIPELINE_DEFS.map(d=>d.key);
+  const idx=keys.indexOf(l.pipeline);
+  if(idx<keys.length-1) setPipelineStage(id,keys[idx+1]);
+  else showToast('Already at final stage','');
 }
+
+function buildStageBadge(leadId, stageKey){
+  const def=stageByKey(stageKey);
+  return `<div id="stage-badge-${leadId}" style="position:relative;display:inline-block">
+    <button class="stage-pill" style="background:${def.bg};color:${def.color};border:1px solid ${def.border}"
+      onclick="toggleStageDropdown(event,${leadId})">
+      ${def.emoji} ${def.label} <span style="opacity:0.7;font-size:11px">&#9660;</span>
+    </button>
+    <div id="stage-drop-${leadId}" class="stage-dropdown" style="display:none"></div>
+  </div>`;
+}
+
+function toggleStageDropdown(e, leadId){
+  e.stopPropagation();
+  const drop=document.getElementById('stage-drop-'+leadId);
+  if(!drop)return;
+  const isOpen=drop.style.display==='block';
+  document.querySelectorAll('.stage-dropdown').forEach(d=>d.style.display='none');
+  if(isOpen){drop.style.display='none';return;}
+  const l=LEADS.find(x=>x.id===leadId);
+  drop.innerHTML=PIPELINE_DEFS.map(def=>`
+    <div class="stage-option ${def.key===l.pipeline?'stage-option-active':''}"
+      style="--scolor:${def.color};--sbg:${def.bg}"
+      onclick="event.stopPropagation();setPipelineStage(${leadId},'${def.key}')">
+      <span>${def.emoji}</span><span>${def.label}</span>
+      ${def.key===l.pipeline?'<span style="margin-left:auto;font-size:11px;opacity:0.7">current</span>':''}
+    </div>`).join('');
+  drop.style.display='block';
+}
+
+// Close dropdowns when clicking outside
+document.addEventListener('click',()=>document.querySelectorAll('.stage-dropdown').forEach(d=>d.style.display='none'));
 
 function copyOutreach(){const t=document.getElementById('outreach-text')?.value;if(t){navigator.clipboard?.writeText(t);showToast('Copied to clipboard','success');}}
 
@@ -492,19 +596,59 @@ function exportLeads(){
   showToast('CSV exported','success');
 }
 
+function updateAnalytics(){
+  const won=STAGES['closed-won']||[];
+  const lost=STAGES['closed-lost']||[];
+  const active=LEADS.filter(l=>l.pipeline!=='closed-won'&&l.pipeline!=='closed-lost'&&l.pipeline!=='nurture-30d');
+  const hot=LEADS.filter(l=>l.signals.includes('hot')&&l.pipeline!=='closed-won'&&l.pipeline!=='closed-lost');
+  const totalPipeline=active.reduce((s,l)=>{return s+parseFloat((l.value||'0').replace(/[^0-9.]/g,''));},0);
+  const wonVal=won.reduce((s,l)=>{return s+parseFloat((l.value||'0').replace(/[^0-9.]/g,''));},0);
+  // Update stat cards
+  const s=document.getElementById('stat-leads');if(s)s.textContent=active.length;
+  const sh=document.getElementById('stat-hot');if(sh)sh.textContent=hot.length;
+  // Update pipeline value stat card
+  const pv=document.getElementById('stat-pipeline');
+  if(pv){
+    pv.textContent='£'+totalPipeline+'k';
+    const sub=pv.nextElementSibling;
+    if(sub&&wonVal>0)sub.textContent='£'+wonVal+'k closed won';
+  }
+  // Update win rate if exists
+  const wr=document.getElementById('stat-winrate');
+  if(wr){
+    const total=won.length+lost.length;
+    wr.textContent=total>0?Math.round(won.length/total*100)+'%':'—';
+    const sub=wr.nextElementSibling;
+    if(sub)sub.textContent=`${won.length}W / ${lost.length}L`;
+  }
+  // Sparkbar
+  const sb=document.getElementById('stat-sparkbar');
+  if(sb){
+    sb.innerHTML=PIPELINE_DEFS.map(d=>`<div title="${d.label}: ${(STAGES[d.key]||[]).length}" style="height:6px;border-radius:3px;flex:${Math.max((STAGES[d.key]||[]).length,0.3)};background:${d.color};opacity:0.85;min-width:4px;transition:flex 0.4s"></div>`).join('');
+  }
+}
+
 function renderPipeline(){
-  const colors={"Identified":"#5a5a7a","Outreach sent":"#7c6dfa","Qualified":"#f59e0b","Meeting booked":"#2dd4bf","Proposal sent":"#34d399"};
-  document.getElementById('pipeline-board').innerHTML=Object.entries(STAGES).map(([stage,leads])=>`
-    <div class="pipeline-col">
-      <div class="pipeline-col-title" style="color:${colors[stage]}">${stage}<span class="pipeline-col-count">${leads.length}</span></div>
+  const board=document.getElementById('pipeline-board');
+  board.style.gridTemplateColumns='repeat(7,1fr)';
+  board.innerHTML=PIPELINE_DEFS.map(def=>{
+    const leads=STAGES[def.key]||[];
+    const totalVal=leads.reduce((sum,l)=>{const n=parseFloat((l.value||'0').replace(/[^0-9.]/g,''));return sum+n;},0);
+    return `<div class="pipeline-col" style="border-top:3px solid ${def.color}">
+      <div class="pipeline-col-title">
+        <span style="color:${def.color}">${def.emoji} ${def.label}</span>
+        <span class="pipeline-col-count" style="background:${def.bg};color:${def.color};border:1px solid ${def.border}">${leads.length}</span>
+      </div>
+      ${totalVal>0?`<div style="font-size:10px;color:${def.color};margin-bottom:8px;font-weight:600">£${totalVal}k</div>`:''}
       ${leads.map(l=>`
-        <div class="pipeline-item" onclick="switchToLead(${l.id})">
+        <div class="pipeline-item" style="border-left:3px solid ${def.color}" onclick="switchToLead(${l.id})">
           <div class="pipeline-item-name">${l.name}</div>
           <div class="pipeline-item-co">${l.company}</div>
           <div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:5px">${l.services.slice(0,2).map(s=>`<span style="font-size:10px;padding:1px 6px;border-radius:3px;background:var(--surface);color:var(--text3);border:1px solid var(--border)">${SVC[s]||s}</span>`).join('')}</div>
-          <div class="pipeline-item-val">${l.value}</div>
+          <div class="pipeline-item-val" style="color:${def.color}">${l.value}</div>
         </div>`).join('')}
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 function switchToLead(id){switchTab('leads',document.querySelector('.tab-btn'));setTimeout(()=>selectLead(id),80);}
@@ -571,14 +715,14 @@ init();
 
 // ─── TOOLTIP TOUR SYSTEM ─────────────────────────────────────────────────────
 const TOUR_COOKIE = 'oriel_tour_done';
-const TOUR_VERSION = '1';
+const TOUR_VERSION = '2'; // bumped — new pipeline stage features added
 
 const TIPS = [
   {
     id: 'welcome',
-    target: null, // centred modal — no anchor
+    target: null,
     title: '👋 Welcome to Oriel Lead Engine',
-    body: 'This AI-powered tool helps you find, qualify and follow up on telecoms leads — all mapped to Oriel\'s real service offering. Let\'s take a 60-second tour.',
+    body: 'This AI-powered tool helps you find, qualify and follow up on telecoms leads — all mapped to Oriel\'s real service offering. We\'ve just added <strong>7 pipeline stages</strong> with live analytics. Let\'s take a quick tour.',
     pos: 'center',
     btnLabel: 'Start tour →'
   },
@@ -586,7 +730,7 @@ const TIPS = [
     id: 'find-leads',
     target: 'tt-find-leads',
     title: '⚡ AI lead finder',
-    body: 'Click <strong>Find leads</strong> to instantly generate a brand-new, AI-researched UK telecoms prospect — complete with signals, services and a pre-written outreach message.',
+    body: 'Click <strong>Find leads</strong> to instantly generate a brand-new, AI-researched UK telecoms prospect — complete with market signals, relevant Oriel services, and a pre-written outreach message.',
     pos: 'bottom-left',
     btnLabel: 'Next →'
   },
@@ -594,7 +738,7 @@ const TIPS = [
     id: 'nav-tabs',
     target: 'tt-nav-tabs',
     title: '📂 Three views',
-    body: 'Switch between <strong>Leads</strong> (your prospect list), <strong>Pipeline</strong> (Kanban board tracking deal stages), and <strong>Market signals</strong> (telecoms industry intelligence).',
+    body: 'Switch between <strong>Leads</strong> (your prospect list), <strong>Pipeline</strong> (7-stage Kanban board with £ totals per column), and <strong>Market signals</strong> (live telecoms industry intelligence).',
     pos: 'bottom',
     btnLabel: 'Next →'
   },
@@ -602,7 +746,7 @@ const TIPS = [
     id: 'sidebar',
     target: 'tt-sidebar',
     title: '🎯 Filter by Oriel service',
-    body: 'Every filter maps directly to a service from <strong>oriel-agency.com</strong> — from Website UI design and Annual reports to Exhibition signage and Dynamic infographics. Click any filter to narrow your leads.',
+    body: 'Every filter maps directly to a service from <strong>oriel-agency.com</strong> — from Website UI design and Annual/ESG reports to Exhibition signage and Dynamic infographics. Click any filter to narrow your leads instantly.',
     pos: 'right',
     btnLabel: 'Next →'
   },
@@ -617,8 +761,8 @@ const TIPS = [
   {
     id: 'stats',
     target: 'tt-stats',
-    title: '📊 Pipeline at a glance',
-    body: 'Your headline metrics — active leads, average opportunity value, hot signal count, and total 90-day pipeline value — update live as you filter and add leads.',
+    title: '📊 Live analytics — 5 cards',
+    body: 'All five stat cards update in real time as you move leads between stages: <strong>Active leads</strong> (excludes Closed and Nurture), <strong>Hot signals</strong>, <strong>Pipeline value</strong> (£ sum of active leads), <strong>Win rate</strong> (Won ÷ Won+Lost), and a <strong>stage breakdown sparkbar</strong> showing proportional distribution across all 7 stages.',
     pos: 'bottom',
     btnLabel: 'Next →'
   },
@@ -626,15 +770,31 @@ const TIPS = [
     id: 'search',
     target: 'tt-search',
     title: '🔍 Search across everything',
-    body: 'The search bar scans lead names, company names, roles, services, signal labels and descriptions simultaneously. Try searching <em>"annual report"</em> or <em>"MWC"</em> to find relevant leads instantly.',
+    body: 'The search bar scans lead names, company names, roles, services, signal labels and descriptions simultaneously. Try searching <em>"annual report"</em>, <em>"MWC"</em> or <em>"hot"</em> to surface relevant leads instantly.',
     pos: 'bottom',
     btnLabel: 'Next →'
   },
   {
     id: 'lead-card',
-    target: 'tt-stats', // anchors near top of lead list
+    target: 'tt-stats',
     title: '👆 Click any lead card',
-    body: 'Selecting a lead opens the <strong>detail panel</strong> on the right — showing why now, Oriel-specific pitch angles, and an editable outreach message. Hit <em>Improve with AI</em> to get Claude to sharpen it for that specific contact.',
+    body: 'Selecting a lead opens the <strong>detail panel</strong> — showing why now, Oriel-specific pitch angles, and an editable outreach message across Email, LinkedIn or Call formats. Hit <em>Improve with AI</em> to get Claude to sharpen it for that specific contact.',
+    pos: 'bottom',
+    btnLabel: 'Next →'
+  },
+  {
+    id: 'pipeline-stage',
+    target: 'tt-stats',
+    title: '🟡 Pipeline stage dropdown',
+    body: 'In the lead detail panel, a coloured <strong>stage pill</strong> shows the current stage. Click it to open a dropdown with all 7 stages: <em>🟡 New Discovery → 📧 Outreach Sent → 📞 Meeting Booked → 📄 Proposal Sent → ✅ Closed Won / ❌ Closed Lost / 🔁 Nurture (30d)</em>. You can also use the quick-select grid for one-tap switching. Every change updates the analytics cards and Kanban board instantly.',
+    pos: 'bottom',
+    btnLabel: 'Next →'
+  },
+  {
+    id: 'pipeline-board',
+    target: 'tt-nav-tabs',
+    title: '📋 Pipeline Kanban board',
+    body: 'The <strong>Pipeline tab</strong> shows all 7 stages as colour-coded columns. Each column displays the lead count, the total £ value of leads in that stage, and left-border colour coding on every card. Click any card to jump back to the lead detail.',
     pos: 'bottom',
     btnLabel: 'Next →'
   },
@@ -642,7 +802,7 @@ const TIPS = [
     id: 'done',
     target: null,
     title: '✅ You\'re ready',
-    body: 'Start with the <strong>🔥 Hot signals</strong> filter, click a lead, and use the AI to craft your first outreach. You can replay this tour anytime by clicking <strong>Help</strong> in the top bar.',
+    body: 'Start with the <strong>🔥 Hot signals</strong> filter, click a lead, review the pitch ideas, move it to <em>📧 Outreach Sent</em> once you\'ve made contact, and watch your pipeline value and win rate build. Replay this tour anytime via <strong>Help</strong> in the top bar.',
     pos: 'center',
     btnLabel: 'Get started'
   }

@@ -123,20 +123,20 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 2rem
 
 <nav>
   <div class="nav-logo">&#9672; Oriel <span>Lead Engine</span></div>
-  <div class="nav-tabs">
+  <div class="nav-tabs" id="tt-nav-tabs">
     <button class="tab-btn active" onclick="switchTab('leads',this)">&#127919; Leads</button>
     <button class="tab-btn" onclick="switchTab('pipeline',this)">&#128202; Pipeline</button>
     <button class="tab-btn" onclick="switchTab('insights',this)">&#128161; Market signals</button>
   </div>
   <div class="nav-actions">
     <div class="badge-live">Claude AI &middot; oriel-agency.com</div>
-    <button class="btn btn-sm" onclick="findNewLeads()">&#9889; Find leads</button>
+    <button class="btn btn-sm" id="tt-find-leads" onclick="findNewLeads()">&#9889; Find leads</button>
   </div>
 </nav>
 
 <div class="main">
   <div class="view active" id="view-leads">
-    <div class="sidebar">
+    <div class="sidebar" id="tt-sidebar">
       <div>
         <div class="sidebar-label">All services</div>
         <div class="sidebar-section">
@@ -176,7 +176,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 2rem
       <div>
         <div class="sidebar-label">Signal strength</div>
         <div class="sidebar-section">
-          <div class="filter-chip" onclick="setSignal('hot',this)"><span class="chip-icon">&#128293;</span>Hot signals<span class="chip-count">6</span></div>
+          <div class="filter-chip" id="tt-hot-signal" onclick="setSignal('hot',this)"><span class="chip-icon">&#128293;</span>Hot signals<span class="chip-count">6</span></div>
           <div class="filter-chip" onclick="setSignal('warm',this)"><span class="chip-icon">&#127780;</span>Warm signals<span class="chip-count">6</span></div>
           <div class="filter-chip" onclick="setSignal('new',this)"><span class="chip-icon">&#10024;</span>New to market<span class="chip-count">2</span></div>
         </div>
@@ -189,7 +189,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 2rem
     </div>
 
     <div class="content" id="leads-content">
-      <div class="search-wrap">
+      <div class="search-wrap" id="tt-search">
         <div class="search-input-wrap">
           <span class="search-icon">&#128269;</span>
           <input class="search-input" type="text" id="search-box" placeholder="Search companies, roles, signals, services..." oninput="applyFilters()">
@@ -197,13 +197,13 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 2rem
         <button class="btn btn-ghost btn-sm" onclick="sortLeads()">&#8597; Score</button>
         <button class="btn btn-ghost btn-sm" onclick="exportLeads()">&#8599; CSV</button>
       </div>
-      <div class="stats-row">
+      <div class="stats-row" id="tt-stats">
         <div class="stat-card"><div class="stat-label">Active leads</div><div class="stat-value sv-accent" id="stat-leads">14</div><div class="stat-sub">&#8593; 4 this week</div></div>
         <div class="stat-card"><div class="stat-label">Avg opportunity</div><div class="stat-value sv-teal">&#163;22k</div><div class="stat-sub">per engagement</div></div>
         <div class="stat-card"><div class="stat-label">Hot signals</div><div class="stat-value sv-amber">6</div><div class="stat-sub">act this week</div></div>
         <div class="stat-card"><div class="stat-label">Pipeline value</div><div class="stat-value sv-green">&#163;287k</div><div class="stat-sub">potential 90 days</div></div>
       </div>
-      <div class="leads-grid" id="leads-grid"></div>
+      <div class="leads-grid" id="leads-grid" data-tt="tt-leads-grid"></div>
     </div>
 
     <div class="detail-panel" id="detail-panel">
@@ -568,6 +568,312 @@ function showToast(msg,type){
 }
 
 init();
+
+// ─── TOOLTIP TOUR SYSTEM ─────────────────────────────────────────────────────
+const TOUR_COOKIE = 'oriel_tour_done';
+const TOUR_VERSION = '1';
+
+const TIPS = [
+  {
+    id: 'welcome',
+    target: null, // centred modal — no anchor
+    title: '👋 Welcome to Oriel Lead Engine',
+    body: 'This AI-powered tool helps you find, qualify and follow up on telecoms leads — all mapped to Oriel\'s real service offering. Let\'s take a 60-second tour.',
+    pos: 'center',
+    btnLabel: 'Start tour →'
+  },
+  {
+    id: 'find-leads',
+    target: 'tt-find-leads',
+    title: '⚡ AI lead finder',
+    body: 'Click <strong>Find leads</strong> to instantly generate a brand-new, AI-researched UK telecoms prospect — complete with signals, services and a pre-written outreach message.',
+    pos: 'bottom-left',
+    btnLabel: 'Next →'
+  },
+  {
+    id: 'nav-tabs',
+    target: 'tt-nav-tabs',
+    title: '📂 Three views',
+    body: 'Switch between <strong>Leads</strong> (your prospect list), <strong>Pipeline</strong> (Kanban board tracking deal stages), and <strong>Market signals</strong> (telecoms industry intelligence).',
+    pos: 'bottom',
+    btnLabel: 'Next →'
+  },
+  {
+    id: 'sidebar',
+    target: 'tt-sidebar',
+    title: '🎯 Filter by Oriel service',
+    body: 'Every filter maps directly to a service from <strong>oriel-agency.com</strong> — from Website UI design and Annual reports to Exhibition signage and Dynamic infographics. Click any filter to narrow your leads.',
+    pos: 'right',
+    btnLabel: 'Next →'
+  },
+  {
+    id: 'hot-signal',
+    target: 'tt-hot-signal',
+    title: '🔥 Signal strength',
+    body: '<strong>Hot signals</strong> are leads with urgent, time-sensitive triggers — a lost agency, an imminent launch, or an open RFP window. Act on these first. <strong>Warm</strong> signals are receptive but less urgent. <strong>New</strong> means no agency on record yet.',
+    pos: 'right',
+    btnLabel: 'Next →'
+  },
+  {
+    id: 'stats',
+    target: 'tt-stats',
+    title: '📊 Pipeline at a glance',
+    body: 'Your headline metrics — active leads, average opportunity value, hot signal count, and total 90-day pipeline value — update live as you filter and add leads.',
+    pos: 'bottom',
+    btnLabel: 'Next →'
+  },
+  {
+    id: 'search',
+    target: 'tt-search',
+    title: '🔍 Search across everything',
+    body: 'The search bar scans lead names, company names, roles, services, signal labels and descriptions simultaneously. Try searching <em>"annual report"</em> or <em>"MWC"</em> to find relevant leads instantly.',
+    pos: 'bottom',
+    btnLabel: 'Next →'
+  },
+  {
+    id: 'lead-card',
+    target: 'tt-stats', // anchors near top of lead list
+    title: '👆 Click any lead card',
+    body: 'Selecting a lead opens the <strong>detail panel</strong> on the right — showing why now, Oriel-specific pitch angles, and an editable outreach message. Hit <em>Improve with AI</em> to get Claude to sharpen it for that specific contact.',
+    pos: 'bottom',
+    btnLabel: 'Next →'
+  },
+  {
+    id: 'done',
+    target: null,
+    title: '✅ You\'re ready',
+    body: 'Start with the <strong>🔥 Hot signals</strong> filter, click a lead, and use the AI to craft your first outreach. You can replay this tour anytime by clicking <strong>Help</strong> in the top bar.',
+    pos: 'center',
+    btnLabel: 'Get started'
+  }
+];
+
+// ── Cookie helpers ────────────────────────────────────────────────────────────
+function setCookie(name, value, days) {
+  const d = new Date();
+  d.setTime(d.getTime() + days * 86400000);
+  document.cookie = `${name}=${value};expires=${d.toUTCString()};path=/;SameSite=Lax`;
+}
+function getCookie(name) {
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  return match ? match[2] : null;
+}
+
+// ── Tour state ────────────────────────────────────────────────────────────────
+let tourStep = 0;
+let tourOverlay = null;
+let tourBox = null;
+let tourSpotlight = null;
+
+function startTour(force) {
+  if (!force && getCookie(TOUR_COOKIE) === TOUR_VERSION) return;
+  tourStep = 0;
+  buildTourDOM();
+  showStep(0);
+}
+
+function buildTourDOM() {
+  // Remove any existing tour elements
+  document.getElementById('tour-overlay')?.remove();
+
+  // Dark overlay
+  tourOverlay = document.createElement('div');
+  tourOverlay.id = 'tour-overlay';
+  tourOverlay.style.cssText = 'position:fixed;inset:0;z-index:9000;pointer-events:none;';
+  document.body.appendChild(tourOverlay);
+
+  // Spotlight cutout (SVG-based)
+  tourSpotlight = document.createElement('div');
+  tourSpotlight.id = 'tour-spotlight';
+  tourSpotlight.style.cssText = 'position:fixed;inset:0;z-index:9001;pointer-events:none;';
+  document.body.appendChild(tourSpotlight);
+
+  // Tooltip box
+  tourBox = document.createElement('div');
+  tourBox.id = 'tour-box';
+  tourBox.innerHTML = '';
+  document.body.appendChild(tourBox);
+}
+
+function showStep(idx) {
+  tourStep = idx;
+  const tip = TIPS[idx];
+  const isLast = idx === TIPS.length - 1;
+  const isFirst = idx === 0;
+
+  // Build tooltip HTML
+  const progress = TIPS.map((_,i) => `<div class="tp-dot ${i===idx?'tp-dot-active':i<idx?'tp-dot-done':''}"></div>`).join('');
+
+  tourBox.innerHTML = `
+    <div class="tp-header">
+      <div class="tp-icon-wrap">${tip.title.split(' ')[0]}</div>
+      <div class="tp-title">${tip.title.replace(/^\S+\s/, '')}</div>
+      <button class="tp-close" onclick="endTour()" title="Skip tour">&#10005;</button>
+    </div>
+    <div class="tp-body">${tip.body}</div>
+    <div class="tp-footer">
+      <div class="tp-progress">${progress}</div>
+      <div class="tp-btns">
+        ${!isFirst ? `<button class="tp-btn tp-btn-ghost" onclick="showStep(${idx-1})">&#8592; Back</button>` : ''}
+        <button class="tp-btn tp-btn-primary" onclick="${isLast ? 'endTour()' : `showStep(${idx+1})`}">${tip.btnLabel}</button>
+      </div>
+    </div>`;
+
+  // Position the box
+  positionBox(tip);
+
+  // Spotlight
+  renderSpotlight(tip);
+
+  // Animate in
+  tourBox.style.opacity = '0';
+  tourBox.style.transform = 'scale(0.95) translateY(6px)';
+  requestAnimationFrame(() => {
+    tourBox.style.transition = 'opacity 0.22s ease, transform 0.22s ease';
+    tourBox.style.opacity = '1';
+    tourBox.style.transform = 'scale(1) translateY(0)';
+  });
+}
+
+function positionBox(tip) {
+  const BOX_W = 340;
+  const GAP = 16;
+  const MARGIN = 12;
+
+  tourBox.style.cssText = `
+    position:fixed;z-index:9100;width:${BOX_W}px;
+    background:var(--surface);border:1px solid var(--accent);
+    border-radius:14px;padding:20px;
+    box-shadow:0 0 0 1px rgba(124,109,250,0.2), 0 24px 60px rgba(0,0,0,0.6);
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+    pointer-events:all;`;
+
+  if (tip.pos === 'center' || !tip.target) {
+    // Centred modal
+    tourBox.style.left = `calc(50% - ${BOX_W/2}px)`;
+    tourBox.style.top = '50%';
+    tourBox.style.transform = 'translateY(-50%)';
+    return;
+  }
+
+  const el = document.getElementById(tip.target);
+  if (!el) {
+    tourBox.style.left = `calc(50% - ${BOX_W/2}px)`;
+    tourBox.style.top = '50%';
+    tourBox.style.transform = 'translateY(-50%)';
+    return;
+  }
+
+  const r = el.getBoundingClientRect();
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  tourBox.style.transform = '';
+
+  if (tip.pos === 'bottom' || tip.pos === 'bottom-left') {
+    let left = tip.pos === 'bottom-left' ? r.right - BOX_W : r.left + r.width/2 - BOX_W/2;
+    left = Math.max(MARGIN, Math.min(left, vw - BOX_W - MARGIN));
+    tourBox.style.left = left + 'px';
+    tourBox.style.top = (r.bottom + GAP) + 'px';
+  } else if (tip.pos === 'right') {
+    let top = r.top + r.height/2 - 80;
+    top = Math.max(MARGIN, Math.min(top, vh - 200 - MARGIN));
+    tourBox.style.left = (r.right + GAP) + 'px';
+    tourBox.style.top = top + 'px';
+  } else if (tip.pos === 'left') {
+    tourBox.style.left = (r.left - BOX_W - GAP) + 'px';
+    tourBox.style.top = r.top + 'px';
+  }
+}
+
+function renderSpotlight(tip) {
+  if (tip.pos === 'center' || !tip.target) {
+    // Full dark overlay, no cutout
+    tourSpotlight.innerHTML = `<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+      <rect width="100%" height="100%" fill="rgba(0,0,0,0.72)"/>
+    </svg>`;
+    return;
+  }
+  const el = document.getElementById(tip.target);
+  if (!el) {
+    tourSpotlight.innerHTML = `<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+      <rect width="100%" height="100%" fill="rgba(0,0,0,0.72)"/>
+    </svg>`;
+    return;
+  }
+  const r = el.getBoundingClientRect();
+  const PAD = 8;
+  const x = r.left - PAD;
+  const y = r.top - PAD;
+  const w = r.width + PAD*2;
+  const h = r.height + PAD*2;
+  const rx = 10;
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+
+  tourSpotlight.innerHTML = `<svg width="${vw}" height="${vh}" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <mask id="cutout">
+        <rect width="${vw}" height="${vh}" fill="white"/>
+        <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${rx}" fill="black"/>
+      </mask>
+    </defs>
+    <rect width="${vw}" height="${vh}" fill="rgba(0,0,0,0.72)" mask="url(#cutout)"/>
+    <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${rx}" fill="none" stroke="rgba(124,109,250,0.7)" stroke-width="2"/>
+  </svg>`;
+}
+
+function endTour() {
+  setCookie(TOUR_COOKIE, TOUR_VERSION, 365);
+  [tourOverlay, tourSpotlight, tourBox].forEach(el => {
+    if (!el) return;
+    el.style.transition = 'opacity 0.2s';
+    el.style.opacity = '0';
+    setTimeout(() => el?.remove(), 220);
+  });
+  tourOverlay = tourSpotlight = tourBox = null;
+}
+
+// ── Inject tour CSS ───────────────────────────────────────────────────────────
+const tourCSS = `
+#tour-box { font-size:14px; color:var(--text); }
+.tp-header { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+.tp-icon-wrap { font-size:22px; line-height:1; flex-shrink:0; }
+.tp-title { font-size:15px; font-weight:700; letter-spacing:-0.3px; flex:1; line-height:1.3; }
+.tp-close { background:none; border:none; color:var(--text3); cursor:pointer; font-size:16px; padding:2px 4px; border-radius:4px; line-height:1; flex-shrink:0; transition:color 0.12s; }
+.tp-close:hover { color:var(--text); }
+.tp-body { font-size:13px; color:var(--text2); line-height:1.65; margin-bottom:16px; }
+.tp-body strong { color:var(--text); font-weight:600; }
+.tp-body em { color:var(--accent2); font-style:normal; }
+.tp-footer { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.tp-progress { display:flex; gap:5px; align-items:center; }
+.tp-dot { width:6px; height:6px; border-radius:50%; background:var(--border2); transition:all 0.2s; }
+.tp-dot-active { background:var(--accent); width:18px; border-radius:3px; }
+.tp-dot-done { background:var(--accent2); opacity:0.5; }
+.tp-btns { display:flex; gap:8px; }
+.tp-btn { border:none; padding:7px 16px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; transition:all 0.15s; }
+.tp-btn-primary { background:var(--accent); color:#fff; }
+.tp-btn-primary:hover { background:var(--accent2); }
+.tp-btn-ghost { background:var(--surface2); color:var(--text2); border:1px solid var(--border2); }
+.tp-btn-ghost:hover { color:var(--text); }
+#tt-help-btn { background:var(--surface2); border:1px solid var(--border); color:var(--text2); padding:5px 12px; border-radius:6px; font-size:12px; font-weight:500; cursor:pointer; transition:all 0.15s; display:flex; align-items:center; gap:5px; }
+#tt-help-btn:hover { color:var(--text); border-color:var(--border2); }
+`;
+const styleEl = document.createElement('style');
+styleEl.textContent = tourCSS;
+document.head.appendChild(styleEl);
+
+// ── Add Help button to nav ────────────────────────────────────────────────────
+const navActions = document.querySelector('.nav-actions');
+if (navActions) {
+  const helpBtn = document.createElement('button');
+  helpBtn.id = 'tt-help-btn';
+  helpBtn.innerHTML = '&#10067; Help';
+  helpBtn.onclick = () => startTour(true);
+  navActions.insertBefore(helpBtn, navActions.firstChild);
+}
+
+// ── Auto-start for new users ──────────────────────────────────────────────────
+setTimeout(() => startTour(false), 600);
 </script>
 </body>
 </html>

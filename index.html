@@ -115,20 +115,6 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 2rem
 .gen-dot:nth-child(3){animation-delay:0.4s;}
 @keyframes dots{0%,80%,100%{opacity:0.2;transform:scale(0.8)}40%{opacity:1;transform:scale(1)}}
 ::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
-/* ── Pipeline stage dropdown ── */
-.stage-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;font-size:12.5px;font-weight:600;cursor:pointer;transition:all 0.15s;border:none;}
-.stage-pill:hover{filter:brightness(1.15);}
-.stage-dropdown{position:absolute;top:calc(100% + 6px);left:0;z-index:500;background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);padding:4px;width:210px;box-shadow:0 12px 40px rgba(0,0,0,0.5);}
-.stage-option{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;cursor:pointer;font-size:12.5px;color:var(--text2);transition:all 0.1s;}
-.stage-option:hover{background:var(--sbg,var(--surface2));color:var(--scolor,var(--text));}
-.stage-option-active{background:var(--sbg,var(--surface2));color:var(--scolor,var(--text));font-weight:600;}
-.stage-mini-btn{display:flex;align-items:center;gap:5px;padding:6px 8px;border-radius:8px;cursor:pointer;font-size:11.5px;color:var(--text2);border:1px solid var(--border);transition:all 0.12s;white-space:nowrap;overflow:hidden;}
-.stage-mini-btn:hover{background:var(--sb,var(--surface2));color:var(--sc,var(--text));border-color:var(--sbo,var(--border2));}
-.stage-mini-btn span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-/* Pipeline board wider layout */
-.pipeline-columns{display:grid;gap:10px;align-items:start;}
-.pipeline-col{border-top:3px solid transparent;}
-
 .view{display:none;}.view.active{display:flex;flex:1;overflow:hidden;}
 @media(max-width:1200px){.detail-panel{display:none;}.stats-row{grid-template-columns:repeat(2,1fr);}}
 </style>
@@ -211,16 +197,11 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 2rem
         <button class="btn btn-ghost btn-sm" onclick="sortLeads()">&#8597; Score</button>
         <button class="btn btn-ghost btn-sm" onclick="exportLeads()">&#8599; CSV</button>
       </div>
-      <div class="stats-row" id="tt-stats" style="grid-template-columns:repeat(5,1fr)">
-        <div class="stat-card"><div class="stat-label">Active leads</div><div class="stat-value sv-accent" id="stat-leads">14</div><div class="stat-sub">excl. closed &amp; nurture</div></div>
-        <div class="stat-card"><div class="stat-label">Hot signals</div><div class="stat-value sv-amber" id="stat-hot">6</div><div class="stat-sub">act this week</div></div>
-        <div class="stat-card"><div class="stat-label">Pipeline value</div><div class="stat-value sv-green" id="stat-pipeline">&#163;287k</div><div class="stat-sub">potential 90 days</div></div>
-        <div class="stat-card"><div class="stat-label">Win rate</div><div class="stat-value sv-teal" id="stat-winrate">&#8212;</div><div class="stat-sub">0W / 0L</div></div>
-        <div class="stat-card" id="stat-breakdown-card" style="cursor:pointer" onclick="switchTab('pipeline',document.querySelectorAll('.tab-btn')[1])">
-          <div class="stat-label">Stage breakdown</div>
-          <div id="stat-sparkbar" style="display:flex;gap:3px;margin-top:6px;flex-wrap:wrap"></div>
-          <div class="stat-sub" style="margin-top:6px">click to view pipeline</div>
-        </div>
+      <div class="stats-row" id="tt-stats">
+        <div class="stat-card"><div class="stat-label">Active leads</div><div class="stat-value sv-accent" id="stat-leads">14</div><div class="stat-sub">&#8593; 4 this week</div></div>
+        <div class="stat-card"><div class="stat-label">Avg opportunity</div><div class="stat-value sv-teal">&#163;22k</div><div class="stat-sub">per engagement</div></div>
+        <div class="stat-card"><div class="stat-label">Hot signals</div><div class="stat-value sv-amber">6</div><div class="stat-sub">act this week</div></div>
+        <div class="stat-card"><div class="stat-label">Pipeline value</div><div class="stat-value sv-green">&#163;287k</div><div class="stat-sub">potential 90 days</div></div>
       </div>
       <div class="leads-grid" id="leads-grid" data-tt="tt-leads-grid"></div>
     </div>
@@ -252,87 +233,6 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 2rem
       <div class="insights-grid" id="insights-grid"></div>
     </div>
   </div>
-
-  <div class="view" id="view-datasources">
-    <div class="content" style="width:100%;max-width:none">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
-        <div>
-          <div style="font-size:18px;font-weight:700;letter-spacing:-0.5px">&#128279; Live data sources</div>
-          <div style="font-size:13px;color:var(--text2);margin-top:2px">Connect Apollo.io and Companies House to pull real verified lead data</div>
-        </div>
-        <div id="ds-connection-summary" style="font-size:12px;color:var(--text3)">No APIs connected yet</div>
-      </div>
-      <div class="ds-grid">
-
-        <!-- APOLLO.IO CARD -->
-        <div class="ds-card" id="apollo-card">
-          <div class="ds-card-header">
-            <div class="ds-logo" style="background:rgba(99,102,241,0.15);color:#818cf8">&#128269;</div>
-            <div style="flex:1">
-              <div class="ds-title">Apollo.io</div>
-              <div class="ds-subtitle">210M+ contacts &middot; 35M+ companies &middot; No credits on people search</div>
-            </div>
-            <div class="ds-status ds-status-disconnected" id="apollo-status">&#9679; Not connected</div>
-          </div>
-          <label class="ds-label">API key</label>
-          <div style="display:flex;gap:8px;margin-bottom:12px">
-            <input class="ds-input" id="apollo-key" type="password" placeholder="Paste your Apollo API key..." style="margin-bottom:0;flex:1">
-            <button class="btn btn-ghost btn-sm" onclick="saveApolloKey()" style="flex-shrink:0">Save</button>
-          </div>
-          <div style="font-size:11px;color:var(--text3);margin-bottom:14px">
-            Free key: <a href="https://app.apollo.io/#/settings/integrations/api_keys" target="_blank" style="color:var(--accent2)">app.apollo.io &rarr; Settings &rarr; Integrations &rarr; API Keys</a>
-          </div>
-          <div id="apollo-search-wrap" style="display:none">
-            <label class="ds-label">Search telecoms contacts</label>
-            <div style="display:flex;gap:8px;margin-bottom:8px">
-              <input class="ds-input" id="apollo-q" type="text" placeholder="Job title e.g. CMO, Head of Marketing..." style="margin-bottom:0;flex:1">
-              <input class="ds-input" id="apollo-industry" type="text" placeholder="Industry" style="margin-bottom:0;width:150px" value="Telecommunications">
-            </div>
-            <div style="display:flex;gap:8px;margin-bottom:12px">
-              <input class="ds-input" id="apollo-location" type="text" placeholder="Location e.g. United Kingdom" style="margin-bottom:0;flex:1" value="United Kingdom">
-              <input class="ds-input" id="apollo-employees" type="text" placeholder="Min employees" style="margin-bottom:0;width:120px" value="10">
-            </div>
-            <button class="btn btn-sm" style="width:100%;justify-content:center" onclick="searchApollo()">&#128269; Search Apollo contacts</button>
-          </div>
-          <div id="apollo-results" class="ds-results-wrap"></div>
-        </div>
-
-        <!-- COMPANIES HOUSE CARD -->
-        <div class="ds-card" id="ch-card">
-          <div class="ds-card-header">
-            <div class="ds-logo" style="background:rgba(99,155,100,0.15);color:#6db36e">&#127981;</div>
-            <div style="flex:1">
-              <div class="ds-title">Companies House</div>
-              <div class="ds-subtitle">Free UK gov API &middot; Company profiles, directors &amp; filings</div>
-            </div>
-            <div class="ds-status ds-status-disconnected" id="ch-status">&#9679; Not connected</div>
-          </div>
-          <label class="ds-label">API key</label>
-          <div style="display:flex;gap:8px;margin-bottom:12px">
-            <input class="ds-input" id="ch-key" type="password" placeholder="Paste your Companies House API key..." style="margin-bottom:0;flex:1">
-            <button class="btn btn-ghost btn-sm" onclick="saveChKey()" style="flex-shrink:0">Save</button>
-          </div>
-          <div style="font-size:11px;color:var(--text3);margin-bottom:14px">
-            Free key: <a href="https://developer.company-information.service.gov.uk/" target="_blank" style="color:var(--accent2)">developer.company-information.service.gov.uk &rarr; Register application</a>
-          </div>
-          <div id="ch-search-wrap" style="display:none">
-            <label class="ds-label">Search UK companies</label>
-            <div style="display:flex;gap:8px;margin-bottom:8px">
-              <input class="ds-input" id="ch-q" type="text" placeholder="Company name e.g. Vodafone, Openreach..." style="margin-bottom:0;flex:1">
-              <button class="btn btn-sm" onclick="searchCH()" style="flex-shrink:0">&#128269; Search</button>
-            </div>
-            <div style="display:flex;gap:8px;margin-bottom:12px">
-              <input class="ds-input" id="ch-number" type="text" placeholder="Or look up by company number..." style="margin-bottom:0;flex:1">
-              <button class="btn btn-ghost btn-sm" onclick="lookupCH()" style="flex-shrink:0">Look up</button>
-            </div>
-          </div>
-          <div id="ch-results" class="ds-results-wrap"></div>
-        </div>
-
-      </div>
-    </div>
-  </div>
-
 </div>
 
 <div class="toast" id="toast"><span>&#10003;</span><span id="toast-msg">Done</span></div>
@@ -357,41 +257,12 @@ const LEADS = [
   {id:14,name:"Ben Hargreaves",role:"Sustainability Director",company:"Cellnex UK",segment:"infrastructure",services:['annual-report','infographic','copywriting','presentations'],score:85,signals:["hot"],signalLabels:["ESG report cycle underway","Regulatory disclosure tightening","Complex data needs visualising"],avatar:"#4338ca",initials:"CX",location:"London",size:"800 employees",description:"Tower infrastructure company with significant ESG reporting obligations. Ben needs creative support for data visualisation and narrative design \u2014 complex metrics need accessible presentation.",pitchIdeas:[{label:"Sustainability report design",text:"Oriel's work on interactive data tools and complex industry content for GSMA and TM Forum is directly relevant to an ESG report with dense metrics. A designed PDF and interactive report would be a flagship deliverable."},{label:"Dynamic infographics",text:"Sustainability metrics \u2014 carbon intensity, tower energy, circular economy data \u2014 are hard to communicate in tables. A suite of infographics for the report, website and investor presentations gives Ben reusable assets across all channels."}],followUp:"Hi Ben \u2014 we've helped industry bodies present complex technical and data-heavy material in engaging, accessible formats. With ESG disclosure requirements tightening, we think Oriel could be a strong creative partner for Cellnex's sustainability reporting.",pipeline:"Identified",value:"\u00a335k"}
 ];
 
-// ─── PIPELINE STAGE DEFINITIONS ─────────────────────────────────────────────
-const PIPELINE_DEFS = [
-  { key:'new-discovery',    label:'New Discovery',  emoji:'🟡', color:'#f59e0b', bg:'rgba(245,158,11,0.12)',  border:'rgba(245,158,11,0.35)'  },
-  { key:'outreach-sent',    label:'Outreach Sent',  emoji:'📧', color:'#7c6dfa', bg:'rgba(124,109,250,0.12)', border:'rgba(124,109,250,0.35)' },
-  { key:'meeting-booked',   label:'Meeting Booked', emoji:'📞', color:'#2dd4bf', bg:'rgba(45,212,191,0.12)',  border:'rgba(45,212,191,0.35)'  },
-  { key:'proposal-sent',    label:'Proposal Sent',  emoji:'📄', color:'#60a5fa', bg:'rgba(96,165,250,0.12)',  border:'rgba(96,165,250,0.35)'  },
-  { key:'closed-won',       label:'Closed Won',     emoji:'✅', color:'#34d399', bg:'rgba(52,211,153,0.12)',  border:'rgba(52,211,153,0.35)'  },
-  { key:'closed-lost',      label:'Closed Lost',    emoji:'❌', color:'#f87171', bg:'rgba(248,113,113,0.12)', border:'rgba(248,113,113,0.35)' },
-  { key:'nurture-30d',      label:'Nurture (30d)',   emoji:'🔁', color:'#c084fc', bg:'rgba(192,132,252,0.12)', border:'rgba(192,132,252,0.35)' },
-];
-
-// Map old pipeline string values to new keys
-const STAGE_LEGACY_MAP = {
-  'Identified':   'new-discovery',
-  'Outreach sent':'outreach-sent',
-  'Qualified':    'outreach-sent',
-  'Meeting booked':'meeting-booked',
-  'Proposal sent':'proposal-sent',
-};
-
-function stageByKey(key){ return PIPELINE_DEFS.find(s=>s.key===key) || PIPELINE_DEFS[0]; }
-
-// Build STAGES object keyed by stage key
-const STAGES = {};
-PIPELINE_DEFS.forEach(s=>STAGES[s.key]=[]);
+const STAGES = {"Identified":[],"Outreach sent":[],"Qualified":[],"Meeting booked":[],"Proposal sent":[]};
 let curFilter='all', curSignal=null, selLead=null, curChannel='email';
 
 function init(){
-  // Migrate legacy pipeline strings and populate STAGES
-LEADS.forEach(l=>{
-  if(STAGE_LEGACY_MAP[l.pipeline]) l.pipeline=STAGE_LEGACY_MAP[l.pipeline];
-  if(!l.pipeline || !STAGES[l.pipeline]) l.pipeline='new-discovery';
-  STAGES[l.pipeline].push(l);
-});
-  renderLeads(LEADS); renderPipeline(); renderInsights(); updateAnalytics();
+  LEADS.forEach(l=>{if(STAGES[l.pipeline])STAGES[l.pipeline].push(l);});
+  renderLeads(LEADS); renderPipeline(); renderInsights();
 }
 
 function renderLeads(leads){
@@ -459,17 +330,10 @@ function selectLead(id){
         <button class="btn btn-ghost btn-sm" onclick="markContacted(${l.id})">&#10003; Sent</button>
       </div>
     </div>
-    <div class="panel-section">
-      <div class="panel-section-title">Pipeline stage</div>
-      <div style="margin-bottom:10px">${buildStageBadge(l.id, l.pipeline)}</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-        ${PIPELINE_DEFS.map(def=>`<div class="stage-mini-btn" style="--sc:${def.color};--sb:${def.bg};--sbo:${def.border}" onclick="setPipelineStage(${l.id},'${def.key}')" title="${def.label}">${def.emoji} <span>${def.label}</span></div>`).join('')}
-      </div>
-    </div>
     <div style="display:flex;gap:6px">
+      <button class="btn btn-ghost btn-sm" style="flex:1;justify-content:center" onclick="movePipeline(${l.id})">&#8594; Move pipeline</button>
       <button class="btn btn-ghost btn-sm" onclick="showToast('Lead archived','')">&#128451; Archive</button>
-      <button class="btn btn-ghost btn-sm" style="flex:1;justify-content:center" onclick="exportLeads()">&#8599; Export leads</button>
-    </div>\`;
+    </div>`;
 }
 
 const SIGNAL_CTX={
@@ -594,79 +458,30 @@ async function findNewLeads(){
     LEADS.unshift(nl);
     if(STAGES["Identified"])STAGES["Identified"].unshift(nl);
     document.getElementById('cnt-all').textContent=LEADS.length;
-    applyFilters();renderPipeline();updateAnalytics();
+    applyFilters();renderPipeline();
     btn.textContent='\u26a1 Find leads';btn.disabled=false;
     showToast(`New lead: ${nl.name} at ${nl.company}`,'success');
   }catch(e){btn.textContent='\u26a1 Find leads';btn.disabled=false;showToast('AI scan complete \u2014 check leads','success');}
 }
 
 function markContacted(id){
-  setPipelineStage(id,'outreach-sent');
   const l=LEADS.find(x=>x.id===id);
+  if(l?.pipeline==='Identified'){l.pipeline='Outreach sent';STAGES['Identified']=STAGES['Identified'].filter(x=>x.id!==id);if(!STAGES['Outreach sent'])STAGES['Outreach sent']=[];STAGES['Outreach sent'].push(l);renderPipeline();}
   showToast(`${l?.name} marked as contacted`,'success');
-}
-
-function setPipelineStage(id, newKey){
-  const l=LEADS.find(x=>x.id===id);
-  if(!l)return;
-  const oldKey=l.pipeline;
-  if(oldKey===newKey)return;
-  STAGES[oldKey]=STAGES[oldKey].filter(x=>x.id!==id);
-  l.pipeline=newKey;
-  if(!STAGES[newKey])STAGES[newKey]=[];
-  STAGES[newKey].push(l);
-  renderPipeline();
-  updateAnalytics();
-  // Re-render detail panel stage badge
-  const badge=document.getElementById('stage-badge-'+id);
-  if(badge){
-    const def=stageByKey(newKey);
-    badge.innerHTML=buildStageBadge(id,newKey);
-  }
-  showToast(`Moved to "${stageByKey(newKey).label}"`, 'success');
-  // close any open dropdown
-  document.querySelectorAll('.stage-dropdown').forEach(d=>d.remove());
 }
 
 function movePipeline(id){
   const l=LEADS.find(x=>x.id===id);
-  const keys=PIPELINE_DEFS.map(d=>d.key);
-  const idx=keys.indexOf(l.pipeline);
-  if(idx<keys.length-1) setPipelineStage(id,keys[idx+1]);
-  else showToast('Already at final stage','');
+  const stages=Object.keys(STAGES);
+  const idx=stages.indexOf(l.pipeline);
+  if(idx<stages.length-1){
+    STAGES[l.pipeline]=STAGES[l.pipeline].filter(x=>x.id!==id);
+    l.pipeline=stages[idx+1];
+    if(!STAGES[l.pipeline])STAGES[l.pipeline]=[];
+    STAGES[l.pipeline].push(l);
+    renderPipeline();showToast(`Moved to "${l.pipeline}"`,'success');
+  }else showToast('Already at final stage','');
 }
-
-function buildStageBadge(leadId, stageKey){
-  const def=stageByKey(stageKey);
-  return `<div id="stage-badge-${leadId}" style="position:relative;display:inline-block">
-    <button class="stage-pill" style="background:${def.bg};color:${def.color};border:1px solid ${def.border}"
-      onclick="toggleStageDropdown(event,${leadId})">
-      ${def.emoji} ${def.label} <span style="opacity:0.7;font-size:11px">&#9660;</span>
-    </button>
-    <div id="stage-drop-${leadId}" class="stage-dropdown" style="display:none"></div>
-  </div>`;
-}
-
-function toggleStageDropdown(e, leadId){
-  e.stopPropagation();
-  const drop=document.getElementById('stage-drop-'+leadId);
-  if(!drop)return;
-  const isOpen=drop.style.display==='block';
-  document.querySelectorAll('.stage-dropdown').forEach(d=>d.style.display='none');
-  if(isOpen){drop.style.display='none';return;}
-  const l=LEADS.find(x=>x.id===leadId);
-  drop.innerHTML=PIPELINE_DEFS.map(def=>`
-    <div class="stage-option ${def.key===l.pipeline?'stage-option-active':''}"
-      style="--scolor:${def.color};--sbg:${def.bg}"
-      onclick="event.stopPropagation();setPipelineStage(${leadId},'${def.key}')">
-      <span>${def.emoji}</span><span>${def.label}</span>
-      ${def.key===l.pipeline?'<span style="margin-left:auto;font-size:11px;opacity:0.7">current</span>':''}
-    </div>`).join('');
-  drop.style.display='block';
-}
-
-// Close dropdowns when clicking outside
-document.addEventListener('click',()=>document.querySelectorAll('.stage-dropdown').forEach(d=>d.style.display='none'));
 
 function copyOutreach(){const t=document.getElementById('outreach-text')?.value;if(t){navigator.clipboard?.writeText(t);showToast('Copied to clipboard','success');}}
 
@@ -677,59 +492,19 @@ function exportLeads(){
   showToast('CSV exported','success');
 }
 
-function updateAnalytics(){
-  const won=STAGES['closed-won']||[];
-  const lost=STAGES['closed-lost']||[];
-  const active=LEADS.filter(l=>l.pipeline!=='closed-won'&&l.pipeline!=='closed-lost'&&l.pipeline!=='nurture-30d');
-  const hot=LEADS.filter(l=>l.signals.includes('hot')&&l.pipeline!=='closed-won'&&l.pipeline!=='closed-lost');
-  const totalPipeline=active.reduce((s,l)=>{return s+parseFloat((l.value||'0').replace(/[^0-9.]/g,''));},0);
-  const wonVal=won.reduce((s,l)=>{return s+parseFloat((l.value||'0').replace(/[^0-9.]/g,''));},0);
-  // Update stat cards
-  const s=document.getElementById('stat-leads');if(s)s.textContent=active.length;
-  const sh=document.getElementById('stat-hot');if(sh)sh.textContent=hot.length;
-  // Update pipeline value stat card
-  const pv=document.getElementById('stat-pipeline');
-  if(pv){
-    pv.textContent='£'+totalPipeline+'k';
-    const sub=pv.nextElementSibling;
-    if(sub&&wonVal>0)sub.textContent='£'+wonVal+'k closed won';
-  }
-  // Update win rate if exists
-  const wr=document.getElementById('stat-winrate');
-  if(wr){
-    const total=won.length+lost.length;
-    wr.textContent=total>0?Math.round(won.length/total*100)+'%':'—';
-    const sub=wr.nextElementSibling;
-    if(sub)sub.textContent=`${won.length}W / ${lost.length}L`;
-  }
-  // Sparkbar
-  const sb=document.getElementById('stat-sparkbar');
-  if(sb){
-    sb.innerHTML=PIPELINE_DEFS.map(d=>`<div title="${d.label}: ${(STAGES[d.key]||[]).length}" style="height:6px;border-radius:3px;flex:${Math.max((STAGES[d.key]||[]).length,0.3)};background:${d.color};opacity:0.85;min-width:4px;transition:flex 0.4s"></div>`).join('');
-  }
-}
-
 function renderPipeline(){
-  const board=document.getElementById('pipeline-board');
-  board.style.gridTemplateColumns='repeat(7,1fr)';
-  board.innerHTML=PIPELINE_DEFS.map(def=>{
-    const leads=STAGES[def.key]||[];
-    const totalVal=leads.reduce((sum,l)=>{const n=parseFloat((l.value||'0').replace(/[^0-9.]/g,''));return sum+n;},0);
-    return `<div class="pipeline-col" style="border-top:3px solid ${def.color}">
-      <div class="pipeline-col-title">
-        <span style="color:${def.color}">${def.emoji} ${def.label}</span>
-        <span class="pipeline-col-count" style="background:${def.bg};color:${def.color};border:1px solid ${def.border}">${leads.length}</span>
-      </div>
-      ${totalVal>0?`<div style="font-size:10px;color:${def.color};margin-bottom:8px;font-weight:600">£${totalVal}k</div>`:''}
+  const colors={"Identified":"#5a5a7a","Outreach sent":"#7c6dfa","Qualified":"#f59e0b","Meeting booked":"#2dd4bf","Proposal sent":"#34d399"};
+  document.getElementById('pipeline-board').innerHTML=Object.entries(STAGES).map(([stage,leads])=>`
+    <div class="pipeline-col">
+      <div class="pipeline-col-title" style="color:${colors[stage]}">${stage}<span class="pipeline-col-count">${leads.length}</span></div>
       ${leads.map(l=>`
-        <div class="pipeline-item" style="border-left:3px solid ${def.color}" onclick="switchToLead(${l.id})">
+        <div class="pipeline-item" onclick="switchToLead(${l.id})">
           <div class="pipeline-item-name">${l.name}</div>
           <div class="pipeline-item-co">${l.company}</div>
           <div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:5px">${l.services.slice(0,2).map(s=>`<span style="font-size:10px;padding:1px 6px;border-radius:3px;background:var(--surface);color:var(--text3);border:1px solid var(--border)">${SVC[s]||s}</span>`).join('')}</div>
-          <div class="pipeline-item-val" style="color:${def.color}">${l.value}</div>
+          <div class="pipeline-item-val">${l.value}</div>
         </div>`).join('')}
-    </div>`;
-  }).join('');
+    </div>`).join('');
 }
 
 function switchToLead(id){switchTab('leads',document.querySelector('.tab-btn'));setTimeout(()=>selectLead(id),80);}
@@ -792,229 +567,18 @@ function showToast(msg,type){
   setTimeout(()=>t.classList.remove('show'),3000);
 }
 
-
-// ─── DATA SOURCES ──────────────────────────────────────────────────────────────
-let apolloKey = sessionStorage.getItem('oriel_apollo_key') || '';
-let chKey = sessionStorage.getItem('oriel_ch_key') || '';
-
-function saveApolloKey(){
-  const k = document.getElementById('apollo-key').value.trim();
-  if(!k){ showToast('Please enter an API key',''); return; }
-  apolloKey = k;
-  sessionStorage.setItem('oriel_apollo_key', k);
-  document.getElementById('apollo-status').className='ds-status ds-status-connected';
-  document.getElementById('apollo-status').innerHTML='&#9679; Connected';
-  document.getElementById('apollo-search-wrap').style.display='block';
-  updateConnectionSummary();
-  showToast('Apollo.io connected','success');
-}
-
-function saveChKey(){
-  const k = document.getElementById('ch-key').value.trim();
-  if(!k){ showToast('Please enter an API key',''); return; }
-  chKey = k;
-  sessionStorage.setItem('oriel_ch_key', k);
-  document.getElementById('ch-status').className='ds-status ds-status-connected';
-  document.getElementById('ch-status').innerHTML='&#9679; Connected';
-  document.getElementById('ch-search-wrap').style.display='block';
-  updateConnectionSummary();
-  showToast('Companies House connected','success');
-}
-
-function updateConnectionSummary(){
-  const names = [apolloKey?'Apollo.io':'', chKey?'Companies House':''].filter(Boolean).join(' + ');
-  const el = document.getElementById('ds-connection-summary');
-  if(el) el.innerHTML = names
-    ? '<span style="color:var(--green);font-weight:600">&#10003; '+names+' connected</span>'
-    : 'No APIs connected yet';
-}
-
-async function searchApollo(){
-  if(!apolloKey){ showToast('Save your Apollo API key first',''); return; }
-  const title    = document.getElementById('apollo-q').value.trim();
-  const industry = document.getElementById('apollo-industry').value.trim() || 'Telecommunications';
-  const location = document.getElementById('apollo-location').value.trim() || 'United Kingdom';
-  const minEmp   = parseInt(document.getElementById('apollo-employees').value)||10;
-  const resultsEl = document.getElementById('apollo-results');
-  resultsEl.innerHTML = '<div class="ds-loading"><div class="gen-dot"></div><div class="gen-dot"></div><div class="gen-dot"></div><span>Searching Apollo...</span></div>';
-  const params = new URLSearchParams();
-  if(title) params.append('person_titles[]', title);
-  params.append('q_organization_keyword_tags[]', industry);
-  params.append('person_locations[]', location);
-  params.append('organization_num_employees_ranges[]', minEmp+',10000');
-  params.append('page','1'); params.append('per_page','10');
-  try {
-    const res = await fetch('https://api.apollo.io/api/v1/mixed_people/api_search?'+params.toString(), {
-      method:'POST',
-      headers:{'Content-Type':'application/json','X-Api-Key':apolloKey,'Cache-Control':'no-cache'},
-      body:JSON.stringify({})
-    });
-    if(!res.ok) throw new Error('Apollo API '+res.status+': '+res.statusText);
-    const data = await res.json();
-    renderApolloResults(data);
-  } catch(e) {
-    resultsEl.innerHTML = '<div class="ds-empty">&#10060; '+e.message+'</div>';
-    showCorsNote(resultsEl, 'Apollo');
-  }
-}
-
-function renderApolloResults(data){
-  const resultsEl = document.getElementById('apollo-results');
-  const people = data.people || data.contacts || [];
-  if(!people.length){ resultsEl.innerHTML='<div class="ds-empty">No results. Try broader terms.</div>'; return; }
-  resultsEl.innerHTML = people.map(function(p){
-    const org = p.organization||{};
-    const name = [p.first_name,p.last_name].filter(Boolean).join(' ')||'Unknown';
-    const title = p.title||p.seniority||'Unknown role';
-    const company = org.name||p.organization_name||'Unknown company';
-    const location = [p.city,p.country].filter(Boolean).join(', ')||'Unknown location';
-    const employees = org.estimated_num_employees ? org.estimated_num_employees.toLocaleString()+' emp' : '';
-    const linkedin = p.linkedin_url||'';
-    const payload = JSON.stringify({name:name,title:title,company:company,location:location,linkedin:linkedin,employees:org.estimated_num_employees||0}).replace(/"/g,'&quot;');
-    return '<div class="ds-result-row"><div><div class="ds-result-name">'+name+'</div><div class="ds-result-meta">'+title+' &middot; '+company+'</div><div class="ds-result-meta">&#128205; '+location+(employees?' &middot; '+employees:'')+'</div>'+(linkedin?'<a href="'+linkedin+'" target="_blank" style="font-size:11px;color:var(--accent2);margin-top:3px;display:inline-block">LinkedIn &rarr;</a>':'')+'</div><button class="btn btn-ghost btn-sm" style="flex-shrink:0;font-size:11px" onclick="importApolloLead('+payload+')">+ Add lead</button></div>';
-  }).join('');
-  showToast(people.length+' contacts found','success');
-}
-
-function importApolloLead(data){
-  const colors=['#6d28d9','#0d9488','#b45309','#7c3aed','#c2410c','#1d4ed8'];
-  const color=colors[Math.floor(Math.random()*colors.length)];
-  const initials=(data.company||'??').replace(/[^A-Za-z0-9]/g,' ').trim().split(' ').map(function(w){return w[0]||'';}).join('').substring(0,2).toUpperCase()||'??';
-  const lead={id:Date.now(),name:data.name,role:data.title,company:data.company,segment:'b2b',services:['web-design','copywriting'],score:Math.floor(Math.random()*20)+65,signals:['warm'],signalLabels:['Imported from Apollo.io',data.location||'UK',data.employees>200?'200+ employees':'SME scale'],avatar:color,initials:initials,location:(data.location||'UK').split(',')[0].trim(),size:data.employees?data.employees.toLocaleString()+' employees':'Unknown',description:data.name+' ('+data.title+') at '+data.company+'. Imported from Apollo.io.',pitchIdeas:[{label:'Apollo import',text:"Click 'Generate more pitch ideas' to get Oriel-specific pitch angles for this lead."}],followUp:'Hi '+data.name.split(' ')[0]+' \u2014 I came across '+data.company+' and think there could be a strong fit with what we do at Oriel Agency. We specialise in digital creative work for telecoms brands \u2014 would love to share some relevant examples.',pipeline:'new-discovery',value:'\u00a3TBC',_source:'apollo'};
-  LEADS.unshift(lead); STAGES['new-discovery'].unshift(lead);
-  document.getElementById('cnt-all').textContent=LEADS.length;
-  applyFilters(); renderPipeline(); updateAnalytics();
-  showToast(data.name+' added to leads','success');
-}
-
-async function searchCH(){
-  if(!chKey){ showToast('Save your Companies House API key first',''); return; }
-  const q = document.getElementById('ch-q').value.trim();
-  if(!q){ showToast('Enter a company name',''); return; }
-  const resultsEl = document.getElementById('ch-results');
-  resultsEl.innerHTML = '<div class="ds-loading"><div class="gen-dot"></div><div class="gen-dot"></div><div class="gen-dot"></div><span>Searching Companies House...</span></div>';
-  try {
-    const res = await fetch('https://api.company-information.service.gov.uk/search/companies?q='+encodeURIComponent(q)+'&items_per_page=10',
-      {headers:{'Authorization':'Basic '+btoa(chKey+':')}});
-    if(!res.ok) throw new Error('Companies House API '+res.status);
-    const data = await res.json();
-    renderCHResults(data);
-  } catch(e) {
-    resultsEl.innerHTML='<div class="ds-empty">&#10060; '+e.message+'</div>';
-    showCorsNote(resultsEl,'Companies House');
-  }
-}
-
-async function lookupCH(){
-  if(!chKey){ showToast('Save your Companies House API key first',''); return; }
-  const num = document.getElementById('ch-number').value.trim().toUpperCase();
-  if(!num){ showToast('Enter a company number',''); return; }
-  const resultsEl = document.getElementById('ch-results');
-  resultsEl.innerHTML = '<div class="ds-loading"><div class="gen-dot"></div><div class="gen-dot"></div><div class="gen-dot"></div><span>Loading profile...</span></div>';
-  try {
-    const base = 'https://api.company-information.service.gov.uk';
-    const hdrs = {headers:{'Authorization':'Basic '+btoa(chKey+':')}};
-    const [pr, or] = await Promise.all([
-      fetch(base+'/company/'+num, hdrs),
-      fetch(base+'/company/'+num+'/officers', hdrs)
-    ]);
-    if(!pr.ok) throw new Error('Companies House API '+pr.status);
-    const [profile, officers] = await Promise.all([pr.json(), or.ok?or.json():{items:[]}]);
-    renderCHProfile(profile, officers);
-  } catch(e) {
-    resultsEl.innerHTML='<div class="ds-empty">&#10060; '+e.message+'</div>';
-    showCorsNote(resultsEl,'Companies House');
-  }
-}
-
-function renderCHResults(data){
-  const resultsEl = document.getElementById('ch-results');
-  const items = data.items||[];
-  if(!items.length){ resultsEl.innerHTML='<div class="ds-empty">No companies found.</div>'; return; }
-  resultsEl.innerHTML = items.map(function(c){
-    const status=c.company_status||'unknown';
-    const bc=status==='active'?'ds-badge-active':status==='dissolved'?'ds-badge-dissolved':'ds-badge-other';
-    const addr=c.registered_office_address;
-    const addrStr=addr?[addr.locality||addr.address_line_1,addr.postal_code].filter(Boolean).join(', '):'';
-    const payload=JSON.stringify({name:c.title||c.company_name,number:c.company_number,status:status,type:c.company_type||'Ltd',addr:addrStr,founded:c.date_of_creation||''}).replace(/"/g,'&quot;');
-    return '<div class="ds-result-row"><div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><div class="ds-result-name">'+(c.title||c.company_name)+'</div><span class="ds-badge '+bc+'">'+status+'</span></div><div class="ds-result-meta">No. '+c.company_number+' &middot; '+(c.company_type||'Ltd')+'</div>'+(addrStr?'<div class="ds-result-meta">&#128205; '+addrStr+'</div>':'')+(c.date_of_creation?'<div class="ds-result-meta">Founded '+c.date_of_creation.split("-")[0]+'</div>':'')+'</div><div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0"><button class="btn btn-ghost btn-sm" style="font-size:11px" onclick="document.getElementById(\'ch-number\').value=\''+c.company_number+'\';lookupCH()">Full profile</button><button class="btn btn-ghost btn-sm" style="font-size:11px" onclick="importCHLead('+payload+')">+ Add lead</button></div></div>';
-  }).join('');
-  showToast(items.length+' companies found','success');
-}
-
-function renderCHProfile(profile, officers){
-  const resultsEl = document.getElementById('ch-results');
-  const addr=profile.registered_office_address;
-  const addrStr=addr?[addr.address_line_1,addr.address_line_2,addr.locality,addr.postal_code].filter(Boolean).join(', '):'';
-  const status=profile.company_status||'unknown';
-  const bc=status==='active'?'ds-badge-active':status==='dissolved'?'ds-badge-dissolved':'ds-badge-other';
-  const directors=(officers.items||[]).filter(function(o){return o.officer_role&&o.officer_role.includes('director');}).slice(0,6);
-  const coPay=JSON.stringify({name:profile.company_name,number:profile.company_number,status:status,type:profile.type||'Ltd',addr:addrStr,founded:profile.date_of_creation||''}).replace(/"/g,'&quot;');
-  const rows=[['Company number',profile.company_number],['Type',profile.type],['Incorporated',profile.date_of_creation],['SIC codes',(profile.sic_codes||[]).join(', ')||'\u2014'],['Address',addrStr||'\u2014'],['Jurisdiction',profile.jurisdiction||'England/Wales'],['Accounts due',profile.accounts&&profile.accounts.next_due||'\u2014'],['Confirmation due',profile.confirmation_statement&&profile.confirmation_statement.next_due||'\u2014']];
-  resultsEl.innerHTML='<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap"><div style="font-size:15px;font-weight:700">'+profile.company_name+'</div><span class="ds-badge '+bc+'">'+status+'</span></div>'
-    +'<div class="ds-section-title">Company details</div>'
-    +rows.map(function(r){return '<div class="ds-info-row"><span class="ds-info-key">'+r[0]+'</span><span class="ds-info-val">'+(r[1]||'\u2014')+'</span></div>';}).join('')
-    +(directors.length?'<div class="ds-section-title" style="margin-top:12px">Directors</div>'+directors.map(function(o){
-      const oPay=JSON.stringify({officerName:o.name,role:o.officer_role,company:profile.company_name,number:profile.company_number,addr:addrStr}).replace(/"/g,'&quot;');
-      return '<div class="ds-officer-row"><div><div style="font-weight:500;color:var(--text)">'+o.name+'</div><div style="color:var(--text2);font-size:11px">'+o.officer_role+(o.appointed_on?' &middot; Appointed '+o.appointed_on:'')+'</div></div><button class="btn btn-ghost btn-sm" style="font-size:11px" onclick="importOfficerAsLead('+oPay+')">+ Add</button></div>';
-    }).join(''):'')
-    +'<div style="margin-top:12px;display:flex;gap:8px"><button class="btn btn-sm" style="flex:1;justify-content:center" onclick="importCHLead('+coPay+')">+ Add as lead</button><a href="https://find-and-update.company-information.service.gov.uk/company/'+profile.company_number+'" target="_blank" class="btn btn-ghost btn-sm">View on CH &rarr;</a></div>';
-  showToast(profile.company_name+' loaded','success');
-}
-
-function importCHLead(data){
-  const colors=['#0f766e','#1d4ed8','#6d28d9','#047857','#0369a1','#4338ca'];
-  const color=colors[Math.floor(Math.random()*colors.length)];
-  const initials=(data.name||'??').replace(/[^A-Za-z0-9]/g,' ').trim().split(' ').map(function(w){return w[0]||'';}).join('').substring(0,2).toUpperCase()||'??';
-  const score=data.status==='active'?Math.floor(Math.random()*20)+65:40;
-  const lead={id:Date.now(),name:'Unknown contact',role:'Director',company:data.name,segment:'b2b',services:['web-design','copywriting'],score:score,signals:[data.status==='active'?'warm':'cool'],signalLabels:['Companies House #'+data.number,data.status==='active'?'Active company':'Status: '+data.status,data.addr||'UK registered'],avatar:color,initials:initials,location:(data.addr||'UK').split(',')[0].trim(),size:'See Companies House',description:data.name+' \u2014 CH no. '+data.number+'. '+data.status+' '+data.type+'. Incorporated '+data.founded+'.',pitchIdeas:[{label:'Companies House',text:"Click 'Generate more pitch ideas' to get Oriel-specific pitch angles for this company."}],followUp:'Hi \u2014 I came across '+data.name+' and think there could be a strong fit with what we do at Oriel Agency. We specialise in digital creative work for telecoms brands.',pipeline:'new-discovery',value:'\u00a3TBC',_source:'companies-house'};
-  LEADS.unshift(lead); STAGES['new-discovery'].unshift(lead);
-  document.getElementById('cnt-all').textContent=LEADS.length;
-  applyFilters(); renderPipeline(); updateAnalytics();
-  showToast(data.name+' added to leads','success');
-}
-
-function importOfficerAsLead(data){
-  const colors=['#0f766e','#1d4ed8','#6d28d9','#047857'];
-  const color=colors[Math.floor(Math.random()*colors.length)];
-  const parts=data.officerName.split(',');
-  const name=parts.length>1?(parts[1].trim()+' '+parts[0].trim()):data.officerName;
-  const initials=(data.company||'??').replace(/[^A-Za-z0-9]/g,' ').trim().split(' ').map(function(w){return w[0]||'';}).join('').substring(0,2).toUpperCase()||'??';
-  const role=data.role.replace(/-/g,' ').replace(/\b\w/g,function(c){return c.toUpperCase();});
-  const lead={id:Date.now(),name:name,role:role,company:data.company,segment:'b2b',services:['web-design','copywriting'],score:Math.floor(Math.random()*20)+65,signals:['warm'],signalLabels:['Director at '+data.company,'CH no. '+data.number,data.addr||'UK registered'],avatar:color,initials:initials,location:(data.addr||'UK').split(',')[0].trim(),size:'See Companies House',description:name+' is a '+role+' at '+data.company+' (CH no. '+data.number+'). Imported from Companies House.',pitchIdeas:[{label:'CH officer',text:"Click 'Generate more pitch ideas' to get Oriel-specific pitch angles."}],followUp:'Hi '+name.split(' ')[0]+' \u2014 I came across your name as a director of '+data.company+' and think there could be a strong fit with Oriel Agency. We specialise in digital creative work for telecoms brands.',pipeline:'new-discovery',value:'\u00a3TBC',_source:'companies-house'};
-  LEADS.unshift(lead); STAGES['new-discovery'].unshift(lead);
-  document.getElementById('cnt-all').textContent=LEADS.length;
-  applyFilters(); renderPipeline(); updateAnalytics();
-  showToast(name+' added to leads','success');
-}
-
-function showCorsNote(el, apiName){
-  const note=document.createElement('div');
-  note.style.cssText='margin-top:10px;padding:12px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:8px;font-size:12px;color:var(--text2);line-height:1.6';
-  note.innerHTML='<strong style="color:var(--amber)">&#9888; CORS note:</strong> '+apiName+' blocks direct browser-to-API calls due to CORS policy. This is normal. To use live APIs from GitHub Pages, you need a small serverless proxy (e.g. a <a href="https://developers.cloudflare.com/workers/get-started/guide/" target="_blank" style="color:var(--accent2)">Cloudflare Worker</a> or <a href="https://vercel.com/docs/functions" target="_blank" style="color:var(--accent2)">Vercel Function</a>) that forwards requests with your key server-side. Opening the HTML file locally works without a proxy.';
-  el.appendChild(note);
-}
-
-(function restoreKeys(){
-  const ak=sessionStorage.getItem('oriel_apollo_key');
-  const ck=sessionStorage.getItem('oriel_ch_key');
-  if(ak){ apolloKey=ak; const el=document.getElementById('apollo-key'); if(el)el.value=ak; saveApolloKey(); }
-  if(ck){ chKey=ck; const el=document.getElementById('ch-key'); if(el)el.value=ck; saveChKey(); }
-  updateConnectionSummary();
-})();
-
 init();
 
 // ─── TOOLTIP TOUR SYSTEM ─────────────────────────────────────────────────────
 const TOUR_COOKIE = 'oriel_tour_done';
-const TOUR_VERSION = '3'; // bumped — Apollo.io + Companies House data sources added
+const TOUR_VERSION = '1';
 
 const TIPS = [
   {
     id: 'welcome',
-    target: null,
+    target: null, // centred modal — no anchor
     title: '👋 Welcome to Oriel Lead Engine',
-    body: 'This AI-powered tool helps you find, qualify and follow up on telecoms leads — all mapped to Oriel\'s real service offering. We\'ve just added <strong>7 pipeline stages</strong> with live analytics. Let\'s take a quick tour.',
+    body: 'This AI-powered tool helps you find, qualify and follow up on telecoms leads — all mapped to Oriel\'s real service offering. Let\'s take a 60-second tour.',
     pos: 'center',
     btnLabel: 'Start tour →'
   },
@@ -1022,7 +586,7 @@ const TIPS = [
     id: 'find-leads',
     target: 'tt-find-leads',
     title: '⚡ AI lead finder',
-    body: 'Click <strong>Find leads</strong> to instantly generate a brand-new, AI-researched UK telecoms prospect — complete with market signals, relevant Oriel services, and a pre-written outreach message.',
+    body: 'Click <strong>Find leads</strong> to instantly generate a brand-new, AI-researched UK telecoms prospect — complete with signals, services and a pre-written outreach message.',
     pos: 'bottom-left',
     btnLabel: 'Next →'
   },
@@ -1030,7 +594,7 @@ const TIPS = [
     id: 'nav-tabs',
     target: 'tt-nav-tabs',
     title: '📂 Three views',
-    body: 'Switch between <strong>Leads</strong> (your prospect list), <strong>Pipeline</strong> (7-stage Kanban board with £ totals per column), and <strong>Market signals</strong> (live telecoms industry intelligence).',
+    body: 'Switch between <strong>Leads</strong> (your prospect list), <strong>Pipeline</strong> (Kanban board tracking deal stages), and <strong>Market signals</strong> (telecoms industry intelligence).',
     pos: 'bottom',
     btnLabel: 'Next →'
   },
@@ -1038,7 +602,7 @@ const TIPS = [
     id: 'sidebar',
     target: 'tt-sidebar',
     title: '🎯 Filter by Oriel service',
-    body: 'Every filter maps directly to a service from <strong>oriel-agency.com</strong> — from Website UI design and Annual/ESG reports to Exhibition signage and Dynamic infographics. Click any filter to narrow your leads instantly.',
+    body: 'Every filter maps directly to a service from <strong>oriel-agency.com</strong> — from Website UI design and Annual reports to Exhibition signage and Dynamic infographics. Click any filter to narrow your leads.',
     pos: 'right',
     btnLabel: 'Next →'
   },
@@ -1053,8 +617,8 @@ const TIPS = [
   {
     id: 'stats',
     target: 'tt-stats',
-    title: '📊 Live analytics — 5 cards',
-    body: 'All five stat cards update in real time as you move leads between stages: <strong>Active leads</strong> (excludes Closed and Nurture), <strong>Hot signals</strong>, <strong>Pipeline value</strong> (£ sum of active leads), <strong>Win rate</strong> (Won ÷ Won+Lost), and a <strong>stage breakdown sparkbar</strong> showing proportional distribution across all 7 stages.',
+    title: '📊 Pipeline at a glance',
+    body: 'Your headline metrics — active leads, average opportunity value, hot signal count, and total 90-day pipeline value — update live as you filter and add leads.',
     pos: 'bottom',
     btnLabel: 'Next →'
   },
@@ -1062,55 +626,23 @@ const TIPS = [
     id: 'search',
     target: 'tt-search',
     title: '🔍 Search across everything',
-    body: 'The search bar scans lead names, company names, roles, services, signal labels and descriptions simultaneously. Try searching <em>"annual report"</em>, <em>"MWC"</em> or <em>"hot"</em> to surface relevant leads instantly.',
+    body: 'The search bar scans lead names, company names, roles, services, signal labels and descriptions simultaneously. Try searching <em>"annual report"</em> or <em>"MWC"</em> to find relevant leads instantly.',
     pos: 'bottom',
     btnLabel: 'Next →'
   },
   {
     id: 'lead-card',
-    target: 'tt-stats',
+    target: 'tt-stats', // anchors near top of lead list
     title: '👆 Click any lead card',
-    body: 'Selecting a lead opens the <strong>detail panel</strong> — showing why now, Oriel-specific pitch angles, and an editable outreach message across Email, LinkedIn or Call formats. Hit <em>Improve with AI</em> to get Claude to sharpen it for that specific contact.',
+    body: 'Selecting a lead opens the <strong>detail panel</strong> on the right — showing why now, Oriel-specific pitch angles, and an editable outreach message. Hit <em>Improve with AI</em> to get Claude to sharpen it for that specific contact.',
     pos: 'bottom',
     btnLabel: 'Next →'
   },
   {
-    id: 'pipeline-stage',
-    target: 'tt-stats',
-    title: '🟡 Pipeline stage dropdown',
-    body: 'In the lead detail panel, a coloured <strong>stage pill</strong> shows the current stage. Click it to open a dropdown with all 7 stages: <em>🟡 New Discovery → 📧 Outreach Sent → 📞 Meeting Booked → 📄 Proposal Sent → ✅ Closed Won / ❌ Closed Lost / 🔁 Nurture (30d)</em>. You can also use the quick-select grid for one-tap switching. Every change updates the analytics cards and Kanban board instantly.',
-    pos: 'bottom',
-    btnLabel: 'Next →'
-  },
-  {
-    id: 'pipeline-board',
-    target: 'tt-nav-tabs',
-    title: '📋 Pipeline Kanban board',
-    body: 'The <strong>Pipeline tab</strong> shows all 7 stages as colour-coded columns. Each column displays the lead count, the total £ value of leads in that stage, and left-border colour coding on every card. Click any card to jump back to the lead detail.',
-    pos: 'bottom',
-    btnLabel: 'Next →'
-  },
-  {
-    id: 'datasources-tab',
-    target: 'tt-datasources-tab',
-    title: '\u{1F50C} Live data sources',
-    body: 'The <strong>Data sources</strong> tab connects to two real APIs: <strong>Apollo.io</strong> (210M+ verified contacts \u2014 search by job title, industry and location, no credits consumed on search) and <strong>Companies House</strong> (free UK government API for company profiles, directors and filing data). Paste your API keys and search live data instantly.',
-    pos: 'bottom-left',
-    btnLabel: 'Next \u2192'
-  },
-  {
-    id: 'datasources-import',
-    target: 'tt-datasources-tab',
-    title: '\u2795 Import real leads',
-    body: 'Every Apollo contact and Companies House company has an <strong>Add lead</strong> button. One click imports the real verified contact into your leads list at <em>\u{1F7E1} New Discovery</em> stage \u2014 with pre-written outreach ready to go. <strong>Note:</strong> live API calls require a small server proxy when hosted on GitHub Pages due to CORS \u2014 the Data sources panel explains exactly how.',
-    pos: 'bottom-left',
-    btnLabel: 'Next \u2192'
-  },
-    {
     id: 'done',
     target: null,
     title: '✅ You\'re ready',
-    body: 'Start with the <strong>🔥 Hot signals</strong> filter, click a lead, review the pitch ideas, move it to <em>📧 Outreach Sent</em> once you\'ve made contact, and watch your pipeline value and win rate build. Replay this tour anytime via <strong>Help</strong> in the top bar.',
+    body: 'Start with the <strong>🔥 Hot signals</strong> filter, click a lead, and use the AI to craft your first outreach. You can replay this tour anytime by clicking <strong>Help</strong> in the top bar.',
     pos: 'center',
     btnLabel: 'Get started'
   }
